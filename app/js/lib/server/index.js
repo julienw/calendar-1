@@ -100,6 +100,9 @@ export default class Server extends EventDispatcher {
    * @return {Promise}
    */
   subscribeToNotifications(resubscribe = false) {
+    if (!this.isLoggedIn) {
+      return Promise.resolve();
+    }
     return this[p.webPush].subscribeToNotifications(resubscribe);
   }
 }
