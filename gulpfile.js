@@ -243,7 +243,7 @@ gulp.task('build-dev', (cb) => {
 
   runSequence(
     'lint', 'clobber-app', 'copy-app-dev', 'compile-app-dev', 'compile-css',
-    /*'offline',*/ cb
+    'offline', cb
   );
 });
 
@@ -255,7 +255,7 @@ gulp.task('build-production', (cb) => {
 
   runSequence(
     'lint', 'clobber-app', 'copy-app-production', 'compile-app-production',
-    'compile-css', /*'offline',*/ cb
+    'compile-css', 'offline', cb
   );
 });
 
