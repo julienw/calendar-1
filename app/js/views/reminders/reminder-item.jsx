@@ -31,7 +31,7 @@ export default class ReminderItem extends React.Component {
     const reminder = this.reminder;
     const contentClassName = [
       'reminders__item-content',
-      this.getColour(reminder.recipient.join(' ')),
+      this.getColour(reminder.recipients.join(' ')),
     ]
       .join(' and ');
 
@@ -42,7 +42,7 @@ export default class ReminderItem extends React.Component {
         </div>
         <div className={contentClassName}>
           <h3 className="reminders__item-recipient">
-            {reminder.recipient}
+            {reminder.recipients}
           </h3>
           <p className="reminders__item-text">
             {reminder.content}
