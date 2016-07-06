@@ -30,49 +30,23 @@ export default class WebPush extends EventDispatcher {
     navigator.serviceWorker.addEventListener('message',
       this[p.listenForMessages].bind(this));
 
-    const settings = this[p.settings];
-    if (settings.pushEndpoint && settings.pushPubKey && settings.pushAuth &&
-        !resubscribe) {
-      return Promise.resolve();
-    }
+    return navigator.serviceWorker.ready.then((reg) => {
+      reg.pushManager.getSubscription().then((existing) => {
+        if (existing && !resubscribe) {
+          // nothing left to do
+          // We should check if we have this subscription on the server, if not
+          // re-register it on calendar's server.
+          return;
+        }
 
-    return navigator.serviceWorker.ready
-      .then((reg) => reg.pushManager.subscribe({ userVisibleOnly: true }))
-      .then((subscription) => {
-        const endpoint = subscription.endpoint;
-        const key = subscription.getKey ? subscription.getKey('p256dh') : '';
-        const auth = subscription.getKey ? subscription.getKey('auth') : '';
-        settings.pushEndpoint = endpoint;
-        settings.pushPubKey = btoa(String.fromCharCode.apply(null,
-          new Uint8Array(key)));
-        settings.pushAuth = btoa(String.fromCharCode.apply(null,
-          new Uint8Array(auth)));
-
-        // Send push information to the server.
-        // @todo We will need some library to write taxonomy messages.
-        const pushConfigurationMsg = [[
-            [{ id: 'channel:subscribe.webpush@link.mozilla.org' }],
-            {
-              subscriptions: [{
-                public_key: settings.pushPubKey,
-                push_uri: settings.pushEndpoint,
-                auth: settings.pushAuth,
-              }],
-            },
-          ]];
-
-        return this[p.api].put('channels/set', pushConfigurationMsg);
-      })
-      .then(() => {
-        // Setup some common push resources.
-        const pushResourcesMsg = [[
-          [{ id: 'channel:resource.webpush@link.mozilla.org' }],
-          { resources: ['res1'] },
-        ]];
-
-        return this[p.api].put('channels/set', pushResourcesMsg);
-      })
-      .catch((error) => {
+        return reg.pushManager.subscribe({ userVisibleOnly: true })
+          .then((subscription) =>
+            this[p.api].post('subscriptions', {
+              subscription,
+              title: `Browser ${navigator.userAgent}`,
+            })
+          );
+      }).catch((error) => {
         if (Notification.permission === 'denied') {
           throw new Error('Permission request was denied.');
         }
@@ -80,6 +54,7 @@ export default class WebPush extends EventDispatcher {
         console.error('Error while saving subscription ', error);
         throw new Error(`Subscription error: ${error}`);
       });
+    });
   }
 
   [p.listenForMessages](evt) {

@@ -36,9 +36,6 @@ const p = Object.freeze({
 const settings = Object.freeze({
   // String settings.
   SESSION: Object.freeze({ key: 'session' }),
-  PUSH_ENDPOINT: Object.freeze({ key: 'pushEndpoint' }),
-  PUSH_PUB_KEY: Object.freeze({ key: 'pushPubKey' }),
-  PUSH_AUTH: Object.freeze({ key: 'pushAuth' }),
 });
 
 export default class Settings extends EventDispatcher {
@@ -88,30 +85,6 @@ export default class Settings extends EventDispatcher {
 
   get apiVersion() {
     return API_VERSION;
-  }
-
-  get pushEndpoint() {
-    return this[p.values].get(settings.PUSH_ENDPOINT);
-  }
-
-  set pushEndpoint(value) {
-    this[p.updateSetting](settings.PUSH_ENDPOINT, value);
-  }
-
-  get pushPubKey() {
-    return this[p.values].get(settings.PUSH_PUB_KEY);
-  }
-
-  set pushPubKey(value) {
-    this[p.updateSetting](settings.PUSH_PUB_KEY, value);
-  }
-
-  get pushAuth() {
-    return this[p.values].get(settings.PUSH_AUTH);
-  }
-
-  set pushAuth(value) {
-    this[p.updateSetting](settings.PUSH_AUTH, value);
   }
 
   /**
