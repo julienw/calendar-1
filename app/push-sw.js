@@ -16,9 +16,8 @@ self.addEventListener('push', (evt) => {
   console.log('Push received ', obj);
 
   if (obj && obj.message) {
-    const message = JSON.parse(obj.message);
-    console.log('Got the message ', message);
-    evt.waitUntil(processNotification(message));
+    console.log('Got the message %s for %s', obj.message, obj.recipient);
+    evt.waitUntil(processNotification(obj));
   } else {
     console.error('Notification doesnt contain a body, ignoring it: ');
   }
@@ -73,10 +72,10 @@ function notifyClient(obj) {
  * @return {Promise} Promise resolved once the notification is showed.
  */
 function showNotification(obj) {
-  const title = 'Link: Notification';
+  const title = `Reminder for ${obj.recipient}`;
   const body = obj.message;
   const icon = 'img/icons/512.png';
-  const tag = obj.resource || obj.tag || 'link-push';
+  const tag = obj.id || 'link-push';
 
   return self.registration.showNotification(title, {
     body,
