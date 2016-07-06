@@ -84,6 +84,10 @@ export default class Network extends EventDispatcher {
       .then((response) => response.blob());
   }
 
+  fetch(url, method, body) {
+    return this[p.fetch](url, 'application/json', method, body);
+  }
+
   /**
    * Request a content of the specified type from a specified URL.
    *
@@ -91,7 +95,7 @@ export default class Network extends EventDispatcher {
    * @param {string} accept The content mime type (eg. image/jpeg).
    * @param {string=} method The HTTP method (defaults to "GET").
    * @param {Object=} body An object of key/value.
-   * @return {Promise}
+   * @return {Promise<Response>}
    * @private
    */
   [p.fetch](url, accept, method = 'GET', body = undefined) {
