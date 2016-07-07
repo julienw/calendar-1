@@ -30,31 +30,34 @@ export default class WebPush extends EventDispatcher {
     navigator.serviceWorker.addEventListener('message',
       this[p.listenForMessages].bind(this));
 
-    return navigator.serviceWorker.ready.then((reg) => {
-      reg.pushManager.getSubscription().then((existing) => {
-        if (existing && !resubscribe) {
-          // nothing left to do
-          // We should check if we have this subscription on the server, if not
-          // re-register it on calendar's server.
-          return;
-        }
+    return navigator.serviceWorker.ready
+      .then((reg) => {
+        reg.pushManager.getSubscription()
+          .then((existing) => {
+            if (existing && !resubscribe) {
+              // nothing left to do
+              // @todo We should check if we have this subscription on the
+              // server, if not re-register it on calendar's server.
+              // https://github.com/fxbox/calendar/issues/20
+              return;
+            }
 
-        return reg.pushManager.subscribe({ userVisibleOnly: true })
-          .then((subscription) =>
-            this[p.api].post('subscriptions', {
-              subscription,
-              title: `Browser ${navigator.userAgent}`,
-            })
-          );
-      }).catch((error) => {
-        if (Notification.permission === 'denied') {
-          throw new Error('Permission request was denied.');
-        }
+            return reg.pushManager.subscribe({ userVisibleOnly: true })
+              .then((subscription) =>
+                this[p.api].post('subscriptions', {
+                  subscription,
+                  title: `Browser ${navigator.userAgent}`,
+                })
+              );
+          }).catch((error) => {
+            if (Notification.permission === 'denied') {
+              throw new Error('Permission request was denied.');
+            }
 
-        console.error('Error while saving subscription ', error);
-        throw new Error(`Subscription error: ${error}`);
+            console.error('Error while saving subscription ', error);
+            throw new Error(`Subscription error: ${error}`);
+          });
       });
-    });
   }
 
   [p.listenForMessages](evt) {
