@@ -111,6 +111,10 @@ export default class SpeechController extends EventDispatcher {
     this[p.intentParser].parse(result.utterance)
       .then((reminder) => {
         this.emit(EVENT_INTERFACE[5], reminder);
+      })
+      .catch((err) => {
+        console.error('Error while parsing the sentence:', err);
+        console.error('Sentence was:', result.utterance);
       });
   }
 }
