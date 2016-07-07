@@ -53,7 +53,7 @@ export default class API {
     console.log(path, body);
 
     return this[p.onceReady]()
-      .then(() => this[p.net].fetch(this[p.getURL](path), 'POST', body));
+      .then(() => this[p.net].fetchJSON(this[p.getURL](path), 'POST', body));
   }
 
   /**
@@ -67,7 +67,7 @@ export default class API {
    */
   put(path, body) {
     return this[p.onceReady]()
-      .then(() => this[p.net].fetch(this[p.getURL](path), 'PUT', body));
+      .then(() => this[p.net].fetchJSON(this[p.getURL](path), 'PUT', body));
   }
 
   /**
@@ -81,7 +81,7 @@ export default class API {
    */
   delete(path, body) {
     return this[p.onceReady]()
-      .then(() => this[p.net].fetch(this[p.getURL](path), 'DELETE', body));
+      .then(() => this[p.net].fetchJSON(this[p.getURL](path), 'DELETE', body));
   }
 
   /**

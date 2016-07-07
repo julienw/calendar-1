@@ -66,8 +66,16 @@ export default class Network extends EventDispatcher {
    * @return {Promise}
    */
   fetchJSON(url, method = 'GET', body = undefined) {
-    return this[p.fetch](url, 'application/json', method, body)
-      .then((response) => response.json());
+    const jsonMime = 'application/json';
+    return this[p.fetch](url, jsonMime, method, body)
+      .then((response) => {
+        const contentType = response.headers.get('Content-Type');
+        if (!contentType.startsWith(jsonMime) && response.ok) {
+          return undefined;
+        }
+
+        return response.json();
+      });
   }
 
   /**
@@ -82,10 +90,6 @@ export default class Network extends EventDispatcher {
   fetchBlob(url, blobType, method, body) {
     return this[p.fetch](url, blobType, method, body)
       .then((response) => response.blob());
-  }
-
-  fetch(url, method, body) {
-    return this[p.fetch](url, 'application/json', method, body);
   }
 
   /**
