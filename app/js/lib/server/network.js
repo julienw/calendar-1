@@ -66,12 +66,12 @@ export default class Network extends EventDispatcher {
    * @return {Promise}
    */
   fetchJSON(url, method = 'GET', body = undefined) {
-    const jsonMime = 'application/json';
-    return this[p.fetch](url, jsonMime, method, body)
+    const accept = 'application/json';
+    return this[p.fetch](url, accept, method, body)
       .then((response) => {
         const contentType = response.headers.get('Content-Type') || '';
-        if (!contentType.startsWith(jsonMime) && response.ok) {
-          return undefined;
+        if (response.ok && !contentType.startsWith(accept)) {
+          return;
         }
 
         return response.json();

@@ -102,8 +102,7 @@ export default class Server extends EventDispatcher {
   subscribeToNotifications(resubscribe = false) {
     if (!this.isLoggedIn) {
       return Promise.reject(new Error(
-        'Subscribing to push notifications is not possible ' +
-        'because the user is not logged in yet.'
+        'Error while subscribing to push notifications: user is not logged in'
       ));
     }
     return this[p.webPush].subscribeToNotifications(resubscribe);
