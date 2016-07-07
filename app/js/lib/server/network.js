@@ -111,16 +111,13 @@ export default class Network extends EventDispatcher {
       cache: 'no-store',
     };
 
-    if (method === 'POST' || method === 'PUT' || method === 'DELETE') {
-      req.headers['Content-Type'] = 'application/json;charset=UTF-8';
-    }
-
     if (this[p.settings].session) {
       // The user is logged in, we authenticate the request.
       req.headers.Authorization = `Bearer ${this[p.settings].session}`;
     }
 
     if (body !== undefined) {
+      req.headers['Content-Type'] = 'application/json;charset=UTF-8';
       req.body = JSON.stringify(body);
     }
 
