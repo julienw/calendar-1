@@ -54,7 +54,10 @@ export default class MainController extends BaseController {
         console.log('Speech controller started');
       });
 
-    this[p.server].subscribeToNotifications();
+    this[p.server].subscribeToNotifications()
+      .catch((err) => {
+        console.error('Error while subscribing to notifications:', err);
+      });
 
     location.hash = '';
 
