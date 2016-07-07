@@ -69,7 +69,7 @@ export default class Network extends EventDispatcher {
     const jsonMime = 'application/json';
     return this[p.fetch](url, jsonMime, method, body)
       .then((response) => {
-        const contentType = response.headers.get('Content-Type');
+        const contentType = response.headers.get('Content-Type') || '';
         if (!contentType.startsWith(jsonMime) && response.ok) {
           return undefined;
         }
