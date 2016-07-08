@@ -78,8 +78,8 @@ function showNotification(obj) {
   } else if (obj.recipients.length === 1) {
     title = `Reminder for ${obj.recipients[0]}`;
   } else {
-    let firstRecipients = obj.recipients.slice(0, -1).join(', ');
-    let lastRecipient = obj.recipients[obj.recipients.length - 1];
+    const firstRecipients = obj.recipients.slice(0, -1).join(', ');
+    const lastRecipient = obj.recipients[obj.recipients.length - 1];
     title = `Reminder for ${firstRecipients} and ${lastRecipient}`;
   }
 
