@@ -21,7 +21,7 @@ const p = Object.freeze({
 
 export default class Server extends EventDispatcher {
   constructor({ settings, net } = {}) {
-    super(['online']);
+    super(['online', 'push-message']);
 
     // Private properties.
     this[p.settings] = settings || new Settings();
