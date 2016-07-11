@@ -94,17 +94,14 @@ export default class Server extends EventDispatcher {
    * This method will be called each time that we log in, but will stop the
    * execution if we already have the push subscription information.
    *
-   * @param {boolean} resubscribe Parameter used for testing purposes, and
-   * follow the whole subscription process even if we already have a push
-   * subscription information.
    * @return {Promise}
    */
-  subscribeToNotifications(resubscribe = false) {
+  subscribeToNotifications() {
     if (!this.isLoggedIn) {
       return Promise.reject(new Error(
         'Error while subscribing to push notifications: user is not logged in'
       ));
     }
-    return this[p.webPush].subscribeToNotifications(resubscribe);
+    return this[p.webPush].subscribeToNotifications();
   }
 }
