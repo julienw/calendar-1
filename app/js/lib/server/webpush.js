@@ -36,13 +36,15 @@ export default class WebPush extends EventDispatcher {
           .then((existing) =>
             existing || reg.pushManager.subscribe({ userVisibleOnly: true })
           )
-      ).then((subscription) =>
+      )
+      .then((subscription) =>
         // The server checks for duplicates
         this[p.api].post('subscriptions', {
           subscription,
           title: `Browser ${navigator.userAgent}`,
         })
-      ).catch((error) => {
+      )
+      .catch((error) => {
         if (Notification.permission === 'denied') {
           throw new Error('Permission request was denied.');
         }
