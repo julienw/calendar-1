@@ -49,8 +49,9 @@ export default class WebPush extends EventDispatcher {
           throw new Error('Permission request was denied.');
         }
 
-        console.error('Error while saving subscription ', error);
-        throw new Error(`Subscription error: ${error}`);
+        throw new Error(
+          `There was an error while subscribing to push notifications: ${error}`
+        );
       });
   }
 
