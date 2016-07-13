@@ -1,6 +1,7 @@
 'use strict';
 
 import EventDispatcher from '../common/event-dispatcher';
+import { HttpError } from '../common/errors';
 
 // Private members
 const p = Object.freeze({
@@ -47,6 +48,11 @@ export default class WebPush extends EventDispatcher {
       .catch((error) => {
         if (Notification.permission === 'denied') {
           throw new Error('Permission request was denied.');
+        }
+
+        // "409 Conflict" HTTP result is OK.
+        if ((error instanceof HttpError) && error.statusCode === 409) {
+          return;
         }
 
         throw new Error(
