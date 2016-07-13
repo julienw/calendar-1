@@ -21,7 +21,7 @@ const p = Object.freeze({
 
 export default class Server extends EventDispatcher {
   constructor({ settings, net } = {}) {
-    super(['logged-in', 'online', 'push-message']);
+    super(['login', 'online', 'push-message']);
 
     // Private properties.
     this[p.settings] = settings || new Settings();
@@ -76,7 +76,7 @@ export default class Server extends EventDispatcher {
     return this[p.api].post('login', { user, password })
       .then((res) => {
         this[p.settings].session = res.token;
-        this.emit('logged-in');
+        this.emit('login');
       });
   }
 

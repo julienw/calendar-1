@@ -9,6 +9,7 @@ const p = Object.freeze({
   controllers: Symbol('controllers'),
   speechController: Symbol('speechController'),
   server: Symbol('server'),
+  subscribeToNotifications: Symbol('subscribeToNotifications'),
 
   onHashChanged: Symbol('onHashChanged'),
 });
@@ -50,18 +51,13 @@ export default class MainController extends BaseController {
         console.log('Speech controller started');
       });
 
-    this[p.server].on('logged-in', () => {
-      this[p.server].subscribeToNotifications()
-        .catch((err) => {
-          console.error('Error while subscribing to notifications:', err);
-        });
-    });
+    this[p.server].on('login', () => this[p.subscribeToNotifications]());
 
     location.hash = '';
 
     setTimeout(() => {
       if (this[p.server].isLoggedIn) {
-        this[p.server].emit('logged-in');
+        this[p.subscribeToNotifications]();
         location.hash = 'reminders';
       } else {
         location.hash = 'users/login';
@@ -84,5 +80,12 @@ export default class MainController extends BaseController {
         break;
       }
     }
+  }
+
+  [p.subscribeToNotifications]() {
+    this[p.server].subscribeToNotifications()
+      .catch((err) => {
+        console.error('Error while subscribing to notifications:', err);
+      });
   }
 }
