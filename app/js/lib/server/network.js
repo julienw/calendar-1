@@ -125,10 +125,7 @@ export default class Network extends EventDispatcher {
     return fetch(url, req)
       .then((res) => {
         if (!res.ok) {
-          throw new HttpError(
-            res.status,
-            `The response returned a ${res.status} HTTP status code.`
-          );
+          throw new HttpError(res.status);
         }
 
         return res;
