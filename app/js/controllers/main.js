@@ -3,11 +3,13 @@ import UsersController from './users';
 import RemindersController from './reminders';
 
 import SpeechController from '../lib/speech-controller';
+import SpeechEngine from '../lib/speech-engine';
 import Server from '../lib/server/index';
 
 const p = Object.freeze({
   controllers: Symbol('controllers'),
   speechController: Symbol('speechController'),
+  speechEngine: Symbol('speechEngine'),
   server: Symbol('server'),
 
   onHashChanged: Symbol('onHashChanged'),
@@ -19,6 +21,7 @@ export default class MainController extends BaseController {
 
     const mountNode = document.querySelector('.app-view-container');
     const speechController = new SpeechController();
+    const speechEngine = new SpeechEngine();
     const server = new Server();
     const options = { mountNode, speechController, server };
 
@@ -32,6 +35,7 @@ export default class MainController extends BaseController {
     };
 
     this[p.speechController] = speechController;
+    this[p.speechEngine] = speechEngine;
     this[p.server] = server;
 
     window.addEventListener('hashchange', this[p.onHashChanged].bind(this));
@@ -49,6 +53,11 @@ export default class MainController extends BaseController {
       .then(() => {
         console.log('Speech controller started');
       });
+
+    this[p.speechEngine].start();
+    this[p.server].on('push-message', (message) => {
+      console.log(message);
+    });
 
     this[p.server].subscribeToNotifications()
       .catch((err) => {

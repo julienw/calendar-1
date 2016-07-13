@@ -41,10 +41,30 @@ self.addEventListener('notificationclick', (evt) => {
   );
 });
 
+function recipientsToString(recipients) {
+  let result;
+  if (!recipients.length) {
+    result = 'Reminder';
+  } else if (recipients.length === 1) {
+    result = `Reminder for ${recipients[0]}`;
+  } else {
+    const firstRecipients = recipients.slice(0, -1).join(', ');
+    const lastRecipient = recipients[recipients.length - 1];
+    result = `Reminder for ${firstRecipients} and ${lastRecipient}`;
+  }
+  return result;
+}
+
 function processNotification(obj) {
-  return notifyClient(obj)
+  const notification = {
+    title: recipientsToString(obj.recipients),
+    body: obj.action,
+    fullMessage: obj
+  };
+
+  return notifyClient(notification)
     .then(() => {
-      return showNotification(obj);
+      return showNotification(notification);
     });
 }
 
@@ -71,25 +91,16 @@ function notifyClient(obj) {
  * @param {Object} obj Payload coming from the push notification.
  * @return {Promise} Promise resolved once the notification is showed.
  */
-function showNotification(obj) {
-  let title;
-  if (!obj.recipients.length) {
-    title = 'Reminder';
-  } else if (obj.recipients.length === 1) {
-    title = `Reminder for ${obj.recipients[0]}`;
-  } else {
-    const firstRecipients = obj.recipients.slice(0, -1).join(', ');
-    const lastRecipient = obj.recipients[obj.recipients.length - 1];
-    title = `Reminder for ${firstRecipients} and ${lastRecipient}`;
-  }
-
-  const body = obj.action;
+function showNotification(notification) {
   const icon = 'img/icons/512.png';
   const tag = obj.id || 'link-push';
 
-  return self.registration.showNotification(title, {
-    body,
-    icon,
-    tag,
-  });
+  return self.registration.showNotification(
+    notification.title,
+    {
+      notification.body,
+      icon,
+      tag,
+    }
+  );
 }
