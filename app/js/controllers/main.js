@@ -50,15 +50,18 @@ export default class MainController extends BaseController {
         console.log('Speech controller started');
       });
 
-    this[p.server].subscribeToNotifications()
-      .catch((err) => {
-        console.error('Error while subscribing to notifications:', err);
-      });
+    this[p.server].on('logged-in', () => {
+      this[p.server].subscribeToNotifications()
+        .catch((err) => {
+          console.error('Error while subscribing to notifications:', err);
+        });
+    });
 
     location.hash = '';
 
     setTimeout(() => {
       if (this[p.server].isLoggedIn) {
+        this[p.server].emit('logged-in');
         location.hash = 'reminders';
       } else {
         location.hash = 'users/login';
