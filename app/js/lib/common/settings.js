@@ -36,6 +36,7 @@ const p = Object.freeze({
 const settings = Object.freeze({
   // String settings.
   SESSION: Object.freeze({ key: 'session' }),
+  VOICED: Object.freeze({ key: 'voiced', type: 'boolean' }),
 });
 
 export default class Settings extends EventDispatcher {
@@ -76,6 +77,14 @@ export default class Settings extends EventDispatcher {
 
   set session(value) {
     this[p.updateSetting](settings.SESSION, value);
+  }
+
+  get voiced() {
+    return this[p.values].get(settings.VOICED);
+  }
+
+  set voiced(value) {
+    this[p.updateSetting](settings.VOICED, value);
   }
 
   // Getters only.
