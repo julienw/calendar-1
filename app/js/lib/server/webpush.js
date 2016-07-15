@@ -62,12 +62,10 @@ export default class WebPush extends EventDispatcher {
   }
 
   [p.listenForMessages](evt) {
-    const msg = evt.data || {};
-
-    if (!msg.action) {
+    if (!evt.data) {
+      console.error('Received a push message without a payload.');
       return;
     }
-
-    this.emit('message', msg);
+    this.emit('message', evt.data);
   }
 }

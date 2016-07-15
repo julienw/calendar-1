@@ -52,6 +52,10 @@ export default class MainController extends BaseController {
       });
 
     this[p.server].on('login', () => this[p.subscribeToNotifications]());
+    this[p.server].on('push-message', (message) => {
+      // if we're in "speaking reminders" mode (which is "always", currently)
+      this[p.speechController].speak(`${message.title}: ${message.body}`);
+    });
 
     location.hash = '';
 
