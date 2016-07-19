@@ -1,5 +1,6 @@
 'use strict';
 
+import Confirmation from './intent-parser/confirmation';
 import chrono from 'components/chrono';
 
 /*
@@ -17,9 +18,22 @@ Remind Guillaume on Thursdays evening to go to his drawing class.
 Remind me that I should prepare my appointment tomorrow morning.
 */
 
+/*
+ * @todo:
+ *   * Replace `[users]` patterns by `[users]`.
+ *   * Use CLDR to:
+ *     * Generate placeholders.users
+ *     * Generate placeholders.listBreaker
+ *     * Generate placeholders.punctuation
+ *   * @see http://www.unicode.org/cldr/charts/29/verify/dates/en.html
+ *     to parse time (e.g. '... in the morning' => 9:00 AM)
+ *   * Make date parsing more robust by applying `chrono` to the full phrase.
+ */
+
 const p = Object.freeze({
   // Properties
-  regexps: Symbol('regexps'),
+  confirmation: Symbol('confirmation'),
+  patterns: Symbol('patterns'),
 
   // Methods
   parseUsers: Symbol('parseUsers'),
@@ -27,7 +41,7 @@ const p = Object.freeze({
   parseDatetime: Symbol('parseDatetime'),
   normalise: Symbol('normalise'),
   init: Symbol('init'),
-  buildRegExp: Symbol('buildRegExp'),
+  buildPatterns: Symbol('buildPatterns'),
   splitOnPlaceholders: Symbol('splitOnPlaceholders'),
   escape: Symbol('escape'),
 });
@@ -35,61 +49,74 @@ const p = Object.freeze({
 const PATTERNS = {
   en: {
     patterns: [
-      `Remind [user] to [action] at [time].`,
-      `Remind [user] to [action] on [time].`,
-      `Remind [user] to [action] by [time].`,
-      `Remind [user] at [time] to [action].`,
-      `Remind [user] on [time] to [action].`,
-      `Remind [user] by [time] to [action].`,
-      `Remind [user] that it is [action] on [time].`,
-      `Remind [user] that [time] is [action].`,
+      `Remind [users] to [action] at [time].`,
+      `Remind [users] to [action] on [time].`,
+      `Remind [users] to [action] by [time].`,
+      `Remind [users] at [time] to [action].`,
+      `Remind [users] on [time] to [action].`,
+      `Remind [users] by [time] to [action].`,
+      `Remind [users] that it is [action] on [time].`,
+      `Remind [users] that it is [action] at [time].`,
+      `Remind [users] that it is [action] by [time].`,
+      `Remind [users] that [time] is [action].`,
+      `Remind [users] that [action] at [time].`,
+      `Remind [users] that [action] on [time].`,
+      `Remind [users] that [action] by [time].`,
     ],
     placeholders: {
-      user: '( \\S+ | \\S+,? and \\S+ )',
+      users: '( \\S+ | \\S+,? and \\S+ )',
       action: '(.+)',
       time: '(.+)',
     },
     // @see http://www.unicode.org/cldr/charts/29/summary/en.html#4
     punctuation: new RegExp(
       `[-‐–—,;:!?.…'‘’"“”()\\[\\]§@*/&#†‡′″]+$`, 'u'),
+    // @see http://www.unicode.org/cldr/charts/29/summary/en.html#6402
+    listBreaker: new RegExp(`,|, and\\b|\\band\\b`, 'gu'),
   },
   fr: {
     patterns: [
-      `Rappelle [user] de [action] [time].`,
-      `Rappelle [user] d'[action] [time].`,
-      `Rappelle-[user] de [action] [time].`,
-      `Rappelle-[user] d'[action] [time].`,
+      `Rappelle [users] de [action] [time].`,
+      `Rappelle [users] d'[action] [time].`,
+      `Rappelle-[users] de [action] [time].`,
+      `Rappelle-[users] d'[action] [time].`,
     ],
     placeholders: {
-      user: '( \\S+ | \\S+ et \\S+ )',
+      users: '( \\S+ | \\S+ et \\S+ )',
       action: '(.+)',
       time: '(.+)',
     },
     punctuation: new RegExp(
       `[-‐–—,;:!?.…’"“”«»()\\[\\]§@*/&#†‡]+$`, 'u'),
+    listBreaker: new RegExp(`,|\\bet\\b`, 'gu'),
   },
   ja: {
     patterns: [
-      `[time][action]を[user]に思い出させて。`,
-      `[time][user]に[action]を思い出させて。`,
-      `[time][user]は[action]と言うリマインダーを作成して。`,
+      `[time][action]を[users]に思い出させて。`,
+      `[time][users]に[action]を思い出させて。`,
+      `[time][users]は[action]と言うリマインダーを作成して。`,
     ],
     placeholders: {
-      user: '(\\S+|\\S+と\\S+)',
+      users: '(\\S+|\\S+、\\S+)',
       action: '(.+)',
       time: '(.+)',
     },
     punctuation: new RegExp(
       `[-‾_＿－‐—―〜・･,，、､;；:：!！?？.．‥…。｡＇‘’"＂“”(（)）\\[［\\]］{｛}｝` +
       `〈〉《》「｢」｣『』【】〔〕‖§¶@＠*＊/／\＼&＆#＃%％‰†‡′″〃※]+$`, 'u'),
+    listBreaker: new RegExp(`、`, 'gu'),
   },
 };
 
 export default class IntentParser {
   constructor(locale = 'en') {
     this.locale = locale;
-    this[p.regexps] = {};
+    this[p.confirmation] = new Confirmation(locale);
+    this[p.patterns] = {};
+
     this[p.init]();
+
+    window.intentParser = this;
 
     Object.seal(this);
   }
@@ -100,15 +127,15 @@ export default class IntentParser {
     }
 
     return new Promise((resolve, reject) => {
-      const successful = this[p.regexps][this.locale].some((pattern) => {
-        if (!pattern.patterns.test(phrase)) {
+      const successful = this[p.patterns][this.locale].some((pattern) => {
+        if (!pattern.regexp.test(phrase)) {
           return false;
         }
 
-        const segments = pattern.patterns.exec(phrase);
+        const segments = pattern.regexp.exec(phrase);
         segments.shift();
 
-        const users = this[p.parseUsers](segments[pattern.placeholders.user]);
+        const users = this[p.parseUsers](segments[pattern.placeholders.users]);
         const action =
           this[p.parseAction](segments[pattern.placeholders.action]);
         const time = this[p.parseDatetime](segments[pattern.placeholders.time]);
@@ -118,7 +145,17 @@ export default class IntentParser {
           return false; // Try next patterns.
         }
 
-        resolve({ users, action, time });
+        // The original pattern matching the intent.
+        const match = pattern.match;
+
+        const confirmation = this[p.confirmation].getReminderMessage({
+          users,
+          action,
+          time,
+          match,
+        });
+
+        resolve({ users, action, time, confirmation });
         return true;
       });
 
@@ -129,7 +166,9 @@ export default class IntentParser {
   }
 
   [p.parseUsers](string = '') {
-    return [string.trim()];
+    return string
+      .split(PATTERNS[this.locale].listBreaker)
+      .map((user) => user.trim());
   }
 
   [p.parseAction](string = '') {
@@ -153,56 +192,57 @@ export default class IntentParser {
   }
 
   /**
-   * Build the `regexps` property as an object mapping locale code to list of
-   * patterns and placeholders pairs.
+   * Build the `patterns` property as an object mapping locale code to list of
+   * patterns.
    */
   [p.init]() {
     Object.keys(PATTERNS).forEach((locale) => {
-      this[p.regexps][locale] = PATTERNS[locale].patterns.map((phrase) =>
-        this[p.buildRegExp](locale, phrase, PATTERNS[locale].placeholders));
+      this[p.patterns][locale] = PATTERNS[locale].patterns.map((phrase) =>
+        this[p.buildPatterns](locale, phrase, PATTERNS[locale].placeholders));
     });
   }
 
-  [p.buildRegExp](locale = 'en', phrase = '', placeholders) {
-    phrase = this[p.normalise](phrase, locale);
-
+  [p.buildPatterns](locale = this.locale, match = '', placeholders) {
+    const phrase = this[p.normalise](match, locale);
     const tokens = this[p.splitOnPlaceholders](phrase);
     const order = {};
     let placeholderIndex = 0;
-    let patterns = tokens.map((token) => {
-      if (token.startsWith('[')) {
-        const placeholder = token
-          .substr(1)
-          // Strip trailing `]`.
-          .replace(new RegExp('\\]$', 'u'), '');
 
-        // The order of the placeholders can be different depending on the
-        // pattern or language. When we parse a string, we need to match the
-        // regexp captured masks to the placeholder given its position.
-        order[placeholder] = placeholderIndex;
-        placeholderIndex++;
+    const pattern = tokens
+      .map((token) => {
+        if (token.startsWith('[')) {
+          const placeholder = token
+            .substr(1)
+            // Strip trailing `]` if any.
+            .replace(new RegExp('\\]$', 'u'), '');
 
-        return placeholders[placeholder];
-      }
+          // The order of the placeholders can be different depending on the
+          // pattern or language. When we parse a string, we need to match the
+          // regexp captured masks to the placeholder given its position.
+          order[placeholder] = placeholderIndex;
+          placeholderIndex++;
 
-      if (token === ' ') {
-        return '\\b \\b';
-      }
+          return placeholders[placeholder];
+        }
 
-      // Leading and trailing spaces are changed to word boundary.
-      return this[p.escape](token)
-        .replace(new RegExp('^ ', 'u'), '\\b')
-        .replace(new RegExp(' $', 'u'), '\\b');
-    });
+        if (token === ' ') {
+          return '\\b \\b';
+        }
 
-    patterns = new RegExp(`^${patterns.join('')}$`, 'iu');
+        // Leading and trailing spaces are changed to word boundary.
+        return this[p.escape](token)
+          .replace(new RegExp('^ ', 'u'), '\\b')
+          .replace(new RegExp(' $', 'u'), '\\b');
+      });
 
-    return { patterns, placeholders: order };
+    const regexp = new RegExp(`^${pattern.join('')}$`, 'iu');
+
+    return { regexp, placeholders: order, match };
   }
 
   /**
-   * Split the input phrase along the placeholders noted into brackets.
-   * e.g. 'Meet [user] on [time].' => ['Meet ', '[user]', ' on ', '[time]', '.']
+   * Split the input phrase along the placeholders noted into brackets:
+   * `Meet [users] on [time].` => ['Meet ', '[users]', ' on ', '[time]', '.']
    *
    * @param {string} phrase
    * @return {Array.<string>}

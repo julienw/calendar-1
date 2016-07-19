@@ -82,91 +82,26 @@ export default class Reminders extends React.Component {
         action: reminder.action,
         due: Number(reminder.time),
       })
-      .then((reminder) => {
+      .then((savedReminder) => {
         const reminders = this.state.reminders;
 
         reminders.push({
-          id: reminder.id,
-          recipients: reminder.recipients,
-          content: reminder.action,
-          datetime: reminder.due,
+          id: savedReminder.id,
+          recipients: savedReminder.recipients,
+          content: savedReminder.action,
+          datetime: savedReminder.due,
         });
 
         this.setState({ reminders });
 
-        const confirmation = this.confirmAReminder(reminder);
-        console.log('Voice feedback:', confirmation);
-        this.speechController.speak(confirmation);
+        console.log('Voice confirmation:', reminder.confirmation);
+        this.speechController.speak(reminder.confirmation);
       })
       .catch((res) => {
         // @todo Add some feedback and remove the reminder from the list:
         // https://github.com/fxbox/calendar/issues/24
         console.error('Saving the reminder failed.', res);
       });
-  }
-
-  /**
-   * Generate a phrase to be spoken to confirm a reminder.
-   *
-   * @param {Object} reminder
-   * @return {string}
-   */
-  confirmAReminder(reminder) {
-    const users = reminder.recipients
-      .map((user) => user === 'me' ? 'you' : user)
-      .join(' and ');
-
-    const action = reminder.action
-      .replace(/\bmy\b/g, 'your')
-      .replace(/\bmine\b/g, 'yours');
-
-    let time = '';
-    if (this.isToday(reminder.due)) {
-      const hour = this.formatTime(reminder.due);
-      time = `at ${hour} today`;
-    } else if (this.isTomorrow(reminder.due)) {
-      const hour = this.formatTime(reminder.due);
-      time = `at ${hour} tomorrow`;
-    } else if (this.isThisMonth(reminder.due)) {
-      time = moment(reminder.due).format('[on the] Do');
-    } else {
-      time = moment(reminder.due).format('[on] MMMM [the] Do');
-    }
-
-    return `OK, I'll remind ${users} to ${action} ${time}.`;
-  }
-
-  isToday(date) {
-    const today = moment().startOf('day');
-    const tomorrow = moment().add(1, 'day').startOf('day');
-    return moment(date).isBetween(today, tomorrow);
-  }
-
-  isTomorrow(date) {
-    const tomorrow = moment().add(1, 'day').startOf('day');
-    const in2days = moment().add(2, 'day').startOf('day');
-    return moment(date).isBetween(tomorrow, in2days);
-  }
-
-  isThisMonth(date) {
-    const thisMonth = moment().startOf('month');
-    const nextMonth = moment().add(1, 'month').startOf('month');
-    return moment(date).isBetween(thisMonth, nextMonth);
-  }
-
-  formatTime(date) {
-    date = moment(date);
-    if (date.minute() === 0) {
-      return date.format('h A');
-    } else if (date.minute() === 15) {
-      return date.format('[quarter past] h A');
-    } else if (date.minute() === 30) {
-      return date.format('[half past] h A');
-    } else if (date.minute() === 45) {
-      const nextHour = date.add(1, 'hour');
-      return nextHour.format('[quarter to] h A');
-    }
-    return date.format('h m A');
   }
 
   onDelete(id) {

@@ -1,5 +1,9 @@
+/* global TwitterCldr, TwitterCldrDataBundle */
+
 import React from 'components/react';
 import moment from 'components/moment';
+import 'components/cldr/en';
+import 'components/cldr/core';
 
 const COLOURS = ['red', 'orange', 'green', 'blue', 'violet'];
 
@@ -7,6 +11,9 @@ export default class ReminderItem extends React.Component {
   constructor(props) {
     super(props);
 
+    TwitterCldr.set_data(TwitterCldrDataBundle);
+
+    this.listFormatter = new TwitterCldr.ListFormatter();
     this.reminder = props.reminder;
     this.onDelete = props.onDelete;
   }
@@ -35,7 +42,7 @@ export default class ReminderItem extends React.Component {
       'reminders__item-content',
       this.getColour(reminder.recipients),
     ]
-      .join(' and ');
+      .join(' ');
 
     return (
       <li className="reminders__item">
@@ -44,7 +51,7 @@ export default class ReminderItem extends React.Component {
         </div>
         <div className={contentClassName}>
           <h3 className="reminders__item-recipient">
-            {reminder.recipients}
+            {this.listFormatter.format(reminder.recipients)}
           </h3>
           <p className="reminders__item-text">
             {reminder.content}

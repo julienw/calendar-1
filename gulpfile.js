@@ -90,6 +90,10 @@ gulp.task('copy-app-common', () => {
       .pipe(rename('js/components/moment.js')),
     gulp.src('./node_modules/chrono-node/chrono.min.js')
       .pipe(rename('js/components/chrono.js')),
+    gulp.src('./node_modules/twitter_cldr/min/core.min.js')
+      .pipe(rename('js/components/cldr/core.js')),
+    gulp.src('./node_modules/twitter_cldr/min/en.min.js')
+      .pipe(rename('js/components/cldr/en.js')),
 
     // Polyfills.
     gulp.src('./node_modules/whatwg-fetch/fetch.js')
