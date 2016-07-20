@@ -10,7 +10,6 @@ const del = require('del');
 const runSequence = require('run-sequence');
 const webserver = require('gulp-webserver');
 const mocha = require('gulp-mocha');
-require('babel-register'); // required so that tests use babel while requiring
 const gls = require('gulp-live-server');
 const sww = require('gulp-sww');
 const esdoc = require('gulp-esdoc');
@@ -357,7 +356,13 @@ gulp.task('run-unit-tests', () => {
   return gulp.src(
     `${TESTS_ROOT}unit/**/*_test.js`, { read: false }
   )
-    .pipe(mocha({ require: ['co-mocha'] }));
+    .pipe(mocha({
+      require: [
+        'babel-register',
+        'co-mocha',
+        './tests/unit/support/node'
+      ]
+    }));
 });
 
 gulp.task('run-test-integration', () => {

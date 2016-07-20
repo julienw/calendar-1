@@ -1,6 +1,6 @@
 'use strict';
 
-import chrono from 'components/chrono';
+import chrono from 'chrono-node';
 
 /*
 Examples of supported phrases:
