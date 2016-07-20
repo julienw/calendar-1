@@ -21,7 +21,9 @@
   "license": "MPL2",
   "dependencies": {
     "alameda": "^1.0.0",
+    "babel-register": "^6.9.0",
     "chrono-node": "^1.2.3",
+    "co-mocha": "^1.1.2",
     "jsspeechrecognizer": "fxbox/JsSpeechRecognizer",
     "lodash": "^4.13.1",
     "moment": "^2.13.0",

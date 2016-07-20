@@ -4,13 +4,13 @@
 
 const gulp = require('gulp');
 
-const babel = require('gulp-babel');
 const eslint = require('gulp-eslint');
 const zip = require('gulp-zip');
 const del = require('del');
 const runSequence = require('run-sequence');
 const webserver = require('gulp-webserver');
 const mocha = require('gulp-mocha');
+require('babel-register'); // required so that tests use babel while requiring
 const gls = require('gulp-live-server');
 const sww = require('gulp-sww');
 const esdoc = require('gulp-esdoc');
@@ -37,7 +37,6 @@ const DOC_ROOT = './doc/';
 
 const DIST_ROOT = './dist/';
 const DIST_APP_ROOT = './dist/app/';
-const DIST_TESTS_ROOT = './dist/tests/';
 
 let webserverStream;
 let foxboxSimulator;
@@ -198,20 +197,6 @@ gulp.task('compress-external-modules', () => {
 });
 
 /**
- * Applies Babel transform to the app/tests JS and JSX files. The only
- * difference between normal app build and build for unit tests is that Rollup
- * is not used here.
- */
-gulp.task('compile-unit-tests', () => {
-  process.env.BABEL_ENV = 'test';
-
-  return gulp
-    .src([`${APP_ROOT}js/**/*.{js,jsx}`, `${TESTS_ROOT}unit/**/*.js`])
-    .pipe(babel())
-    .pipe(gulp.dest(`${DIST_TESTS_ROOT}unit/`));
-});
-
-/**
  * Pipes CSS through several postCSS plugins and outputs single CSS file.
  */
 gulp.task('compile-css', () => {
@@ -309,7 +294,6 @@ gulp.task('default', (cb) => {
  * Remove the distributable files.
  */
 gulp.task('clobber-app', () => del(DIST_APP_ROOT));
-gulp.task('clobber-tests', () => del(DIST_TESTS_ROOT));
 gulp.task('clobber-doc', () => del(DOC_ROOT));
 
 /**
@@ -361,12 +345,19 @@ gulp.task('stop-simulators', () => {
   registrationServerSimulator.stop();
 });
 
-gulp.task('run-unit-tests', ['compile-unit-tests'], (cb) => {
+gulp.task('run-integration-tests', ['compile-integration-tests'], (cb) => {
   const server = new (require('karma').Server)(
     { configFile: `${__dirname}/karma.conf.js` }, cb
   );
 
   server.start();
+});
+
+gulp.task('run-unit-tests', () => {
+  return gulp.src(
+    `${TESTS_ROOT}unit/**/*_test.js`, { read: false }
+  )
+    .pipe(mocha({ require: ['co-mocha'] }));
 });
 
 gulp.task('run-test-integration', () => {
@@ -392,6 +383,9 @@ gulp.task('run-test-e2e', () => {
     .pipe(mocha());
 });
 
+gulp.task('test', ['run-unit-tests', 'lint']);
+
+/*
 gulp.task('test', ['clobber-tests', 'build-production'], (cb) => {
   runSequence(
     'run-unit-tests',
@@ -402,6 +396,7 @@ gulp.task('test', ['clobber-tests', 'build-production'], (cb) => {
     }
   );
 });
+*/
 
 // @todo Should be included in 'test' once less manual steps are required.
 gulp.task('test-e2e', (cb) => {
