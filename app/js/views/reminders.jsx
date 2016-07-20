@@ -17,6 +17,7 @@ export default class Reminders extends React.Component {
     this.refreshInterval = null;
     this.debugEvent = this.debugEvent.bind(this);
     this.onReminder = this.onReminder.bind(this);
+    this.onWebPushMessage = this.onWebPushMessage.bind(this);
 
     moment.locale(navigator.languages || navigator.language || 'en-US');
   }
@@ -48,6 +49,8 @@ export default class Reminders extends React.Component {
     this.speechController.on('speechrecognitionstop', this.debugEvent);
     this.speechController.on('reminder', this.debugEvent);
     this.speechController.on('reminder', this.onReminder);
+
+    this.server.on('push-message', this.onWebPushMessage);
   }
 
   componentWillUnmount() {
@@ -60,6 +63,8 @@ export default class Reminders extends React.Component {
     this.speechController.off('speechrecognitionstop', this.debugEvent);
     this.speechController.off('reminder', this.debugEvent);
     this.speechController.off('reminder', this.onReminder);
+
+    this.server.off('push-message', this.onWebPushMessage);
   }
 
   debugEvent(evt) {
@@ -116,6 +121,17 @@ export default class Reminders extends React.Component {
       .catch(() => {
         console.error(`The reminder ${id} could not be deleted.`);
       });
+  }
+
+  onWebPushMessage(message) {
+    const id = message.fullMessage.id;
+
+    // We don't want to delete them, merely remove it from our local state.
+    // At reload, we shouldn't get it because their status changed server-side
+    // too.
+    const reminders = this.state.reminders
+      .filter((reminder) => reminder.id !== id);
+    this.setState({ reminders });
   }
 
   // @todo Add a different view when there's no reminders:
