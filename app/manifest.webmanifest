@@ -1,6 +1,6 @@
 {
-  "name": "Project Link Calendar",
-  "short_name": "Link Calendar",
+  "name": "Project Cue",
+  "short_name": "Cue",
   "lang": "en",
   "scope": "/app/",
   "start_url": "/app/?homescreen=1",

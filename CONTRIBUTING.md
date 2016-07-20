@@ -1,8 +1,8 @@
-# Contributing to Project Link Calendar app
+# Contributing to Project Cue app
 
 ## Where to start?
 
-If you're new to the Project Link Calendar app and want to contribute, there is a
+If you're new to the Project Cue app and want to contribute, there is a
 [list of good first bugs](https://github.com/fxbox/app/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22).
 
 ## Coding standard

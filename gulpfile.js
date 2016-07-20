@@ -334,7 +334,7 @@ gulp.task('generate-doc', () => {
   return gulp.src(`${APP_ROOT}js/lib/foxbox/`)
     .pipe(esdoc({
       destination: DOC_ROOT,
-      title: 'Project Link Calendar app',
+      title: 'Project Cue app',
       test: {
         type: 'mocha',
         source: TESTS_ROOT,

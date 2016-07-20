@@ -1,6 +1,6 @@
 {
-  "name": "project-link-calendar-app",
-  "description": "Project Link Calendar app",
+  "name": "project-cue-app",
+  "description": "Project Cue app",
   "version": "0.0.0",
   "main": "index.js",
   "repository": {
