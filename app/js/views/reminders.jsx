@@ -3,6 +3,7 @@ import _ from 'components/lodash';
 import moment from 'components/moment';
 
 import ReminderItem from './reminders/reminder-item';
+import Toaster from './toaster';
 
 export default class Reminders extends React.Component {
   constructor(props) {
@@ -15,6 +16,7 @@ export default class Reminders extends React.Component {
     this.speechController = props.speechController;
     this.server = props.server;
     this.refreshInterval = null;
+    this.toaster = null;
     this.debugEvent = this.debugEvent.bind(this);
     this.onReminder = this.onReminder.bind(this);
     this.onParsingFailure = this.onParsingFailure.bind(this);
@@ -100,18 +102,22 @@ export default class Reminders extends React.Component {
 
         this.setState({ reminders });
 
-        console.log('Voice confirmation:', reminder.confirmation);
+        this.toaster.success(reminder.confirmation);
         this.speechController.speak(reminder.confirmation);
       })
       .catch((res) => {
-        // @todo Add some feedback and remove the reminder from the list:
-        // https://github.com/fxbox/calendar/issues/24
         console.error('Saving the reminder failed.', res);
+        const message = 'This reminder could not be saved. ' +
+          'Please try again later.';
+        this.toaster.warning(message);
+        this.speechController.speak(message);
       });
   }
 
   onParsingFailure() {
-    this.speechController.speak(`I didn't understand that. Can you repeat?`);
+    const message = 'I did not understand that. Can you repeat?';
+    this.toaster.warning(message);
+    this.speechController.speak(message);
   }
 
   onWebPushMessage(message) {
@@ -200,6 +206,7 @@ export default class Reminders extends React.Component {
 
     return (
       <section className="reminders">
+        <Toaster ref={(t) => this.toaster = t}/>
         {reminderNodes}
       </section>
     );

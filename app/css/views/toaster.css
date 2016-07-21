@@ -1,0 +1,47 @@
+.toaster {
+  position: absolute;
+  z-index: 2147483647; /* Probably the max value */
+  top: 0;
+  right: 0;
+  left: 0;
+  width: 50%;
+  margin: 0 auto;
+  padding: 1.6rem;
+  transition: transform 0.3s ease-in-out;
+  transform: translateY(-100%);
+  text-align: center;
+  border: 0.1rem solid #000;
+  border-top: none;
+  border-bottom-left-radius: 1rem;
+  border-bottom-right-radius: 1rem;
+  font-size: 2rem;
+  font-weight: 400;
+}
+
+.toaster.success {
+  color: #0ca8a4;
+  border-color: #b2e0df;
+  background-color: #d3eeed;
+}
+
+.toaster.info {
+  color: #31708f;
+  border-color: #bcdff1;
+  background-color: #d9edf7;
+}
+
+.toaster.warning {
+  color: #8a6d3b;
+  border-color: #faf2cc;
+  background-color: #fcf8e3;
+}
+
+.toaster.danger {
+  color: #a94442;
+  border-color: #ebcccc;
+  background-color: #f2dede;
+}
+
+.toaster p {
+  margin: 0;
+}

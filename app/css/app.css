@@ -2,6 +2,7 @@
 @import 'views/user-login.css';
 @import 'views/reminders.css';
 @import 'views/microphone.css';
+@import 'views/toaster.css';
 
 /** General styles **/
 html {
