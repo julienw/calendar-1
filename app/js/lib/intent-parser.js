@@ -1,7 +1,7 @@
 'use strict';
 
 import Confirmation from './intent-parser/confirmation';
-import chrono from 'components/chrono';
+import chrono from './intent-parser/chrono';
 
 /*
 Examples of supported phrases:
@@ -20,14 +20,10 @@ Remind me that I should prepare my appointment tomorrow morning.
 
 /*
  * @todo:
- *   * Replace `[users]` patterns by `[users]`.
  *   * Use CLDR to:
  *     * Generate placeholders.users
  *     * Generate placeholders.listBreaker
  *     * Generate placeholders.punctuation
- *   * @see http://www.unicode.org/cldr/charts/29/verify/dates/en.html
- *     to parse time (e.g. '... in the morning' => 9:00 AM)
- *   * Make date parsing more robust by applying `chrono` to the full phrase.
  */
 
 const p = Object.freeze({
@@ -55,13 +51,16 @@ const PATTERNS = {
       `Remind [users] at [time] to [action].`,
       `Remind [users] on [time] to [action].`,
       `Remind [users] by [time] to [action].`,
+      `Remind [users] to [action].`,
       `Remind [users] that it is [action] on [time].`,
       `Remind [users] that it is [action] at [time].`,
       `Remind [users] that it is [action] by [time].`,
-      `Remind [users] that [time] is [action].`,
+      `Remind [users] that it is [action].`,
       `Remind [users] that [action] at [time].`,
       `Remind [users] that [action] on [time].`,
       `Remind [users] that [action] by [time].`,
+      `Remind [users] that [action].`,
+      `Remind [users] that [time] is [action].`,
     ],
     placeholders: {
       users: '( \\S+ | \\S+,? and \\S+ )',
@@ -127,23 +126,27 @@ export default class IntentParser {
     }
 
     return new Promise((resolve, reject) => {
+      phrase = this[p.normalise](phrase);
+      const { time, processedPhrase } = this[p.parseDatetime](phrase);
+
+      if (!time) {
+        return reject('Time could not be parsed.');
+      }
+
       const successful = this[p.patterns][this.locale].some((pattern) => {
-        if (!pattern.regexp.test(phrase)) {
+        if (!pattern.regexp.test(processedPhrase)) {
           return false;
         }
 
-        const segments = pattern.regexp.exec(phrase);
+        const segments = pattern.regexp.exec(processedPhrase);
         segments.shift();
 
-        const users = this[p.parseUsers](segments[pattern.placeholders.users]);
-        const action =
-          this[p.parseAction](segments[pattern.placeholders.action]);
-        const time = this[p.parseDatetime](segments[pattern.placeholders.time]);
-
-        if (time === null) {
-          reject('Time could not be parsed.');
-          return false; // Try next patterns.
-        }
+        const users = this[p.parseUsers](
+          segments[pattern.placeholders.users], phrase
+        );
+        const action = this[p.parseAction](
+          segments[pattern.placeholders.action], phrase
+        );
 
         // The original pattern matching the intent.
         const match = pattern.match;
@@ -175,17 +178,35 @@ export default class IntentParser {
     return string.trim();
   }
 
-  [p.parseDatetime](string = '') {
-    string = string.trim();
-    const datetime = chrono.parseDate(string);
+  [p.parseDatetime](phrase = '') {
+    phrase = phrase.trim();
 
-    return datetime;
+    const dates = chrono.parse(phrase);
+
+    if (!dates.length) {
+      return { time: null, processedPhrase: '' };
+    }
+
+    if (dates.length > 1) {
+      console.error('More than 2 temporal components detected.');
+    }
+
+    const date = dates[0];
+    const time = date.start.date();
+
+    const processedPhrase = phrase.substr(0, date.index) +
+      phrase.substr(date.index + date.text.length);
+
+    return { time, processedPhrase };
   }
 
   [p.normalise](string = '', locale = this.locale) {
     // Normalise whitespaces to space.
     return string
       .replace(/\s+/g, ' ')
+      // The Web Speech API returns PM hours as `p.m.`.
+      .replace(/([0-9]) p\.m\./gi, '$1 PM')
+      .replace(/([0-9]) a\.m\./gi, '$1 AM')
       .trim()
       // Strip punctuations.
       .replace(PATTERNS[locale].punctuation, '');

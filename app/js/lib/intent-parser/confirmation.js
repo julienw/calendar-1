@@ -63,8 +63,6 @@ export default class Confirmation {
    * @return {string}
    */
   getReminderMessage(reminder) {
-    console.log(reminder);
-
     const template = this[p.getLocalised]('template');
     const data = {
       users: this[p.formatUser](reminder),
