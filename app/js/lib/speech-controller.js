@@ -42,6 +42,9 @@ const EVENT_INTERFACE = [
 
   // Emit when an intent is successfully parsed and we have a reminder object.
   'reminder',
+
+  // Emit when a reminder could not be parsed from a text.
+  'parsing-failed',
 ];
 
 export default class SpeechController extends EventDispatcher {
@@ -139,6 +142,11 @@ export default class SpeechController extends EventDispatcher {
         });
       })
       .catch((err) => {
+        this.emit(EVENT_INTERFACE[6], {
+          type: EVENT_INTERFACE[6],
+          result: result.utterance,
+        });
+
         console.error('Error while parsing the sentence:', err);
         console.error('Sentence was:', result.utterance);
       });
