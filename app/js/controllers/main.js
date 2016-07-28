@@ -4,12 +4,15 @@ import RemindersController from './reminders';
 
 import SpeechController from '../lib/speech-controller';
 import Server from '../lib/server/index';
+import Settings from '../lib/common/settings';
 
 const p = Object.freeze({
   controllers: Symbol('controllers'),
   speechController: Symbol('speechController'),
   server: Symbol('server'),
   subscribeToNotifications: Symbol('subscribeToNotifications'),
+  settings: Symbol('settings'),
+  initVoiced: Symbol('initVoiced'),
 
   onHashChanged: Symbol('onHashChanged'),
 });
@@ -20,7 +23,8 @@ export default class MainController extends BaseController {
 
     const mountNode = document.querySelector('.app-view-container');
     const speechController = new SpeechController();
-    const server = new Server();
+    const settings = new Settings();
+    const server = new Server({ settings });
     const options = { mountNode, speechController, server };
 
     const usersController = new UsersController(options);
@@ -34,6 +38,8 @@ export default class MainController extends BaseController {
 
     this[p.speechController] = speechController;
     this[p.server] = server;
+    this[p.settings] = settings;
+    this[p.initVoiced]();
 
     window.addEventListener('hashchange', this[p.onHashChanged].bind(this));
   }
@@ -53,8 +59,9 @@ export default class MainController extends BaseController {
 
     this[p.server].on('login', () => this[p.subscribeToNotifications]());
     this[p.server].on('push-message', (message) => {
-      // if we're in "speaking reminders" mode (which is "always", currently)
-      this[p.speechController].speak(`${message.title}: ${message.body}`);
+      if (this[p.settings].voiced) {
+        this[p.speechController].speak(`${message.title}: ${message.body}`);
+      }
     });
 
     location.hash = '';
@@ -67,6 +74,22 @@ export default class MainController extends BaseController {
         location.hash = 'users/login';
       }
     });
+  }
+
+  /**
+   * Clear all data/settings stored on the browser. Use with caution.
+   *
+   * @param {boolean} ignoreServiceWorker
+   * @return {Promise}
+   */
+  clear(ignoreServiceWorker = true) {
+    const promises = [this[p.settings].clear()];
+
+    if (!ignoreServiceWorker) {
+      promises.push(this[p.server].clearServiceWorker());
+    }
+
+    return Promise.all(promises);
   }
 
   /**
@@ -84,6 +107,8 @@ export default class MainController extends BaseController {
         break;
       }
     }
+
+    this[p.initVoiced]();
   }
 
   [p.subscribeToNotifications]() {
@@ -91,5 +116,25 @@ export default class MainController extends BaseController {
       .catch((err) => {
         console.error('Error while subscribing to notifications:', err);
       });
+  }
+
+  /**
+   * Will init the `voiced` property, which controls whether a notification is
+   * spoken.
+   *
+   * This works by using a specific hash while loading or running the
+   * application.
+   * Recognized syntaxes are: voiced=1/true/0/false
+   */
+  [p.initVoiced]() {
+    const forcedMatch = location.hash.match(/\bvoiced=(.+?)(&|$)/);
+
+    if (forcedMatch) {
+      const matchedValue = forcedMatch[1];
+      const forceVoiced = matchedValue === '1' || matchedValue === 'true';
+
+      console.log('Forcing the `voiced` property to ', forceVoiced);
+      this[p.settings].voiced = forceVoiced;
+    }
   }
 }

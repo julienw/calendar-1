@@ -3,8 +3,8 @@
 'use strict';
 
 import EventDispatcher from '../common/event-dispatcher';
+import Settings from '../common/settings';
 
-import Settings from './settings';
 import Network from './network';
 import WebPush from './webpush';
 import API from './api';
@@ -38,23 +38,6 @@ export default class Server extends EventDispatcher {
     window.server = this;
 
     Object.seal(this);
-  }
-
-  /**
-   * Clear all data/settings stored on the browser. Use with caution.
-   *
-   * @param {boolean} ignoreServiceWorker
-   * @return {Promise}
-   */
-  clear(ignoreServiceWorker = true) {
-    const promises = [this[p.settings].clear()];
-
-    if (!navigator.serviceWorker && !ignoreServiceWorker) {
-      promises.push(navigator.serviceWorker.ready
-        .then((registration) => registration.unregister()));
-    }
-
-    return Promise.all(promises);
   }
 
   get online() {
@@ -104,5 +87,14 @@ export default class Server extends EventDispatcher {
       ));
     }
     return this[p.webPush].subscribeToNotifications();
+  }
+
+  clearServiceWorker() {
+    if (navigator.serviceWorker) {
+      return navigator.serviceWorker.ready
+        .then((registration) => registration.unregister());
+    }
+
+    return Promise.resolve();
   }
 }
