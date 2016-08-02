@@ -278,7 +278,7 @@ gulp.task('offline', () => {
     ],
     { cwd: DIST_APP_ROOT }
   )
-    .pipe(sww({ hookSW: 'push-sw.js' }))
+    .pipe(sww({ hookSW: ['serviceworker/push.js', 'serviceworker/update.js'] }))
     .pipe(gulp.dest(DIST_APP_ROOT));
 });
 
