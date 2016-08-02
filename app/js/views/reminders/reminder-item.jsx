@@ -47,14 +47,14 @@ export default class ReminderItem extends React.Component {
     return (
       <li className="reminders__item">
         <div className="reminders__item-time">
-          <div>{moment(reminder.datetime).format('LT')}</div>
+          <div>{moment(reminder.due).format('LT')}</div>
         </div>
         <div className={contentClassName}>
           <h3 className="reminders__item-recipient">
             {this.listFormatter.format(reminder.recipients)}
           </h3>
           <p className="reminders__item-text">
-            {reminder.content}
+            {reminder.action}
             <button className="reminders__delete"
                     onClick={this.onDelete}>
               Delete

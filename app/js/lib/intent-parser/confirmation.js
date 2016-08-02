@@ -33,6 +33,9 @@ const PATTERNS = {
     template: `OK, I'll remind [users] [action] [time].`,
     formatUser: (user) => user
       .replace(/\bme\b/gi, 'you')
+      .replace(/\bI'm\b/gi, 'you\'re')
+      .replace(/\bI've\b/gi, 'you\'ve')
+      .replace(/\bI'll\b/gi, 'you\'ll')
       .replace(/\bI\b/gi, 'you')
       .replace(/\bmy\b/gi, 'your')
       .replace(/\bmine\b/gi, 'yours'),
@@ -92,43 +95,45 @@ export default class Confirmation {
   }
 
   [p.formatUser](reminder) {
+    const { recipients } = reminder;
     const formatUser = this[p.getLocalised]('formatUser');
-    const users = reminder.users.map(formatUser);
-    return this[p.listFormatter].format(users);
+    const formattedRecipients = recipients.map(formatUser);
+    return this[p.listFormatter].format(formattedRecipients);
   }
 
   [p.formatAction](reminder) {
+    const { action } = reminder;
     const formatUser = this[p.getLocalised]('formatUser');
-    const action = formatUser(reminder.action);
+    const formattedAction = formatUser(action);
     const PATTERN1 = new RegExp(`\\bthat \\[action\\]`, 'iu');
     const PATTERN2 = new RegExp(`\\bit is \\[action\\]`, 'iu');
+    const PATTERN3 = new RegExp(`\\babout \\[action\\]`, 'iu');
 
     if (PATTERN1.test(reminder.match)) {
-      return `that ${action}`;
+      return `that ${formattedAction}`;
     } else if (PATTERN2.test(reminder.match)) {
-      return `that it is ${action}`;
+      return `that it is ${formattedAction}`;
+    } else if (PATTERN3.test(reminder.match)) {
+      return `about ${formattedAction}`;
     }
 
-    return `to ${action}`;
+    return `to ${formattedAction}`;
   }
 
   [p.formatTime](reminder) {
-    const date = reminder.time;
-    let time = '';
+    const { due } = reminder;
 
-    if (this[p.isToday](date)) {
-      const hour = this[p.formatHoursAndMinutes](date);
-      time = `at ${hour} today`;
-    } else if (this[p.isTomorrow](date)) {
-      const hour = this[p.formatHoursAndMinutes](date);
-      time = `at ${hour} tomorrow`;
-    } else if (this[p.isThisMonth](date)) {
-      time = moment(date).format('[on the] Do');
-    } else {
-      time = moment(date).format('[on] MMMM [the] Do');
+    if (this[p.isToday](due)) {
+      const hour = this[p.formatHoursAndMinutes](due);
+      return `at ${hour} today`;
+    } else if (this[p.isTomorrow](due)) {
+      const hour = this[p.formatHoursAndMinutes](due);
+      return `at ${hour} tomorrow`;
+    } else if (this[p.isThisMonth](due)) {
+      return moment(due).format('[on the] Do');
     }
 
-    return time;
+    return moment(due).format('[on] MMMM [the] Do');
   }
 
   [p.isToday](date) {

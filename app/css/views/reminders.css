@@ -36,14 +36,14 @@
 }
 
 .reminders__day-mday {
-  color: #444;
+  color: #333;
   font-size: 4rem;
   font-weight: 100;
   line-height: 4rem;
 }
 
 .reminders__day-wday {
-  color: #444;
+  color: #333;
   font-size: 2rem;
   font-weight: 100;
   line-height: 2rem;
@@ -66,7 +66,7 @@
 .reminders__item-time {
   margin: 1rem 2rem 0 0;
   text-align: center;
-  color: #444;
+  color: #333;
   font-size: 2rem;
   font-weight: 200;
   line-height: 2rem;
@@ -90,6 +90,7 @@
   position: relative;
   margin: 0.1rem;
   padding: 1rem 0 1rem 1rem;
+  color: #555;
   background: #fff;
   font-size: 1.8rem;
   font-weight: 300;

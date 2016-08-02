@@ -61,6 +61,10 @@ const PATTERNS = {
       `Remind [users] that [action] by [time].`,
       `Remind [users] that [action].`,
       `Remind [users] that [time] is [action].`,
+      `Remind [users] about [action] on [time].`,
+      `Remind [users] about [action] at [time].`,
+      `Remind [users] about [action] by [time].`,
+      `Remind [users] about [action].`,
     ],
     placeholders: {
       users: '( \\S+ | \\S+,? and \\S+ )',
@@ -127,9 +131,9 @@ export default class IntentParser {
 
     return new Promise((resolve, reject) => {
       phrase = this[p.normalise](phrase);
-      const { time, processedPhrase } = this[p.parseDatetime](phrase);
+      const { due, processedPhrase } = this[p.parseDatetime](phrase);
 
-      if (!time) {
+      if (!due) {
         return reject('Time could not be parsed.');
       }
 
@@ -141,7 +145,7 @@ export default class IntentParser {
         const segments = pattern.regexp.exec(processedPhrase);
         segments.shift();
 
-        const users = this[p.parseUsers](
+        const recipients = this[p.parseUsers](
           segments[pattern.placeholders.users], phrase
         );
         const action = this[p.parseAction](
@@ -152,13 +156,13 @@ export default class IntentParser {
         const match = pattern.match;
 
         const confirmation = this[p.confirmation].getReminderMessage({
-          users,
+          recipients,
           action,
-          time,
+          due,
           match,
         });
 
-        resolve({ users, action, time, confirmation });
+        resolve({ recipients, action, due, confirmation });
         return true;
       });
 
@@ -192,12 +196,12 @@ export default class IntentParser {
     }
 
     const date = dates[0];
-    const time = date.start.date();
+    const due = Number(date.start.date());
 
     const processedPhrase = phrase.substr(0, date.index) +
       phrase.substr(date.index + date.text.length);
 
-    return { time, processedPhrase };
+    return { due, processedPhrase };
   }
 
   [p.normalise](string = '', locale = this.locale) {
