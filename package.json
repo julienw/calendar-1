@@ -98,6 +98,6 @@
     "sinon-chai": "^2.8.0",
     "stylelint": "^6.5.1",
     "stylelint-config-standard": "^8.0.0",
-    "uglify-js": "github:mishoo/UglifyJS2#harmony"
+    "uglify-js": "github:mishoo/UglifyJS2#766fafda8baefe6d150df27dfad7e99857c08557"
   }
 }

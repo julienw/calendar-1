@@ -19,11 +19,18 @@ module.exports = function(config) {
       },
       { pattern: 'node_modules/react-dom/dist/react-dom.js', included: false },
       { pattern: 'node_modules/rxjs/bundles/Rx.umd.js', included: false },
+      { pattern: 'node_modules/chrono-node/chrono.min.js', included:false },
+      { pattern: 'node_modules/moment/moment.js', included: false },
+      { pattern: 'node_modules/twitter_cldr/min/*.js', included: false },
       'tests/unit/test-main.js',
     ],
 
     // Test results reporter to use.
     reporters: ['mocha'],
+
+    mochaReporter: {
+      showDiff: true,
+    },
 
     // Web server port.
     port: 9876,
@@ -42,7 +49,7 @@ module.exports = function(config) {
 
     // Start these browsers, available browser launchers:
     // https://npmjs.org/browse/keyword/karma-launcher
-    browsers: ['Firefox'],
+    browsers: ['Chrome'],
 
 
     // Continuous Integration mode, if true, Karma captures browsers, runs the
