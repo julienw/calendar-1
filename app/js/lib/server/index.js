@@ -21,7 +21,7 @@ const p = Object.freeze({
 
 export default class Server extends EventDispatcher {
   constructor({ settings, net } = {}) {
-    super(['login', 'online', 'push-message']);
+    super(['login', 'online', 'push-message', 'serviceworkerchange']);
 
     // Private properties.
     this[p.settings] = settings || new Settings();
@@ -34,6 +34,10 @@ export default class Server extends EventDispatcher {
 
     this[p.net].on('online', (online) => this.emit('online', online));
     this[p.webPush].on('message', (msg) => this.emit('push-message', msg));
+    navigator.serviceWorker.addEventListener(
+      'controllerchange',
+      () => this.emit('serviceworkerchange')
+    );
 
     window.server = this;
 

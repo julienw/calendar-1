@@ -20,6 +20,7 @@ export default class Reminders extends React.Component {
     this.onReminder = this.onReminder.bind(this);
     this.onParsingFailure = this.onParsingFailure.bind(this);
     this.onWebPushMessage = this.onWebPushMessage.bind(this);
+    this.onServiceworkerChange = this.onServiceworkerChange.bind(this);
 
     moment.locale(navigator.languages || navigator.language || 'en-US');
   }
@@ -46,6 +47,7 @@ export default class Reminders extends React.Component {
     this.speechController.on('reminder', this.onReminder);
     this.speechController.on('parsing-failed', this.onParsingFailure);
     this.server.on('push-message', this.onWebPushMessage);
+    this.server.on('serviceworkerchange', this.onServiceworkerChange);
   }
 
   componentWillUnmount() {
@@ -115,6 +117,21 @@ export default class Reminders extends React.Component {
     const reminders = this.state.reminders
       .filter((reminder) => reminder.id !== id);
     this.setState({ reminders });
+  }
+
+  onServiceworkerChange() {
+    if (this.speechController.idle) {
+      location.reload();
+    } else {
+      const message =
+        'The application has just been updated. '+
+        'You may experience random issues until the app is reloaded. ' +
+        `We'll reload the app automatically soon.`;
+      this.toaster.warning(message);
+      this.speechController.once('idle', () => {
+        location.reload();
+      });
+    }
   }
 
   // @todo Add a different view when there's no reminders:

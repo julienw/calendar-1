@@ -45,6 +45,9 @@ const EVENT_INTERFACE = [
 
   // Emit when a reminder could not be parsed from a text.
   'parsing-failed',
+
+  // Emit when the speechController is idle
+  'idle',
 ];
 
 export default class SpeechController extends EventDispatcher {
@@ -116,6 +119,7 @@ export default class SpeechController extends EventDispatcher {
   [p.startListeningForWakeword]() {
     this.emit(EVENT_INTERFACE[0], { type: EVENT_INTERFACE[0] });
     this[p.idle] = true;
+    this.emit('idle');
 
     return this[p.wakewordRecogniser].startListening();
   }
