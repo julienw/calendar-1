@@ -7,21 +7,21 @@ describe('intent-parser', function() {
       {
         sentence: 'Remind me to go to the office by 5pm',
         parsed: {
-          users: ['me'],
+          recipients: ['me'],
           action: 'go to the office',
           confirmation:
             'OK, I\'ll remind you to go to the office at 5 PM today.',
-          time: moment({ hour: 17 }).toDate(),
+          due: moment({ hour: 17 }).toDate().getTime(),
         },
       },
       {
         sentence: 'Remind John by tomorrow to take out trash',
         parsed: {
-          users: ['John'],
+          recipients: ['John'],
           action: 'take out trash',
           confirmation:
             'OK, I\'ll remind John to take out trash at 12 PM tomorrow.',
-          time: moment({ hour: 12 }).add(1, 'day').toDate(),
+          due: moment({ hour: 12 }).add(1, 'day').toDate().getTime(),
         },
       },
     ];
