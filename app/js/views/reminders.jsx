@@ -123,10 +123,7 @@ export default class Reminders extends React.Component {
     if (this.speechController.idle) {
       location.reload();
     } else {
-      const message =
-        'The application has just been updated. '+
-        'You may experience random issues until the app is reloaded. ' +
-        `We'll reload the app automatically soon.`;
+      const message = 'Project cue is updating and will restart shortly.';
       this.toaster.warning(message);
       this.speechController.once('idle', () => {
         location.reload();
