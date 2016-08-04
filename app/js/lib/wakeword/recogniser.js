@@ -18,8 +18,8 @@ export default class WakeWordRecogniser {
       });
 
     this.recogniser = new PocketSphinx(this.audioContext, {
-      pocketSphinxUrl: '/js/components/pocketsphinx.js',
-      workerUrl: '/js/components/ps-worker.js',
+      pocketSphinxUrl: 'pocketsphinx.js',
+      workerUrl: 'js/components/ps-worker.js',
       args: [['-kws_threshold', '2']],
     });
 
