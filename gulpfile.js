@@ -82,8 +82,6 @@ gulp.task('copy-app-common', () => {
       .pipe(rename('js/alameda.js')),
 
     // Components.
-    gulp.src('./node_modules/jsspeechrecognizer/dist/JsSpeechRecognizer.js')
-      .pipe(rename('js/components/jsspeechrecognizer.js')),
     gulp.src('./node_modules/lodash/lodash.min.js')
       .pipe(rename('js/components/lodash.js')),
     gulp.src('./node_modules/moment/min/moment-with-locales.min.js')
@@ -94,6 +92,12 @@ gulp.task('copy-app-common', () => {
       .pipe(rename('js/components/cldr/core.js')),
     gulp.src('./node_modules/twitter_cldr/min/en.min.js')
       .pipe(rename('js/components/cldr/en.js')),
+    gulp.src('./node_modules/webaudio-kws-node/dist/amd-library.js')
+      .pipe(rename('js/components/webaudiokws.js')),
+    gulp.src('./node_modules/webaudio-kws-node/dist/ps-worker.js')
+      .pipe(rename('js/components/ps-worker.js')),
+    gulp.src('./node_modules/webaudio-kws-node/dist/pocketsphinx.js')
+      .pipe(rename('js/components/pocketsphinx.js')),
 
     // Polyfills.
     gulp.src('./node_modules/whatwg-fetch/fetch.js')

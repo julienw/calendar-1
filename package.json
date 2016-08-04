@@ -22,13 +22,13 @@
   "dependencies": {
     "alameda": "^1.0.0",
     "chrono-node": "^1.2.3",
-    "jsspeechrecognizer": "fxbox/JsSpeechRecognizer",
     "lodash": "^4.13.1",
     "moment": "^2.13.0",
     "react": "^15.1.0",
     "react-dom": "^15.1.0",
     "twitter_cldr": "^2.1.1",
     "url-search-params": "^0.5.0",
+    "webaudio-kws-node": "https://github.com/fxbox/webaudio-kws-node",
     "webrtc-adapter": "^1.4.0",
     "whatwg-fetch": "^1.0.0"
   },

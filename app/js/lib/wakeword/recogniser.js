@@ -1,60 +1,65 @@
 'use strict';
 
-import JsSpeechRecognizer from 'components/jsspeechrecognizer';
+import PocketSphinx from 'components/webaudiokws';
 
 export default class WakeWordRecogniser {
-  constructor(options = {}) {
-    const minimumConfidence = options.minimumConfidence || 0.35;
-    const bufferCount = options.bufferCount || 80;
-    const maxVoiceActivityGap = options.maxVoiceActivityGap || 300;
-    const numGroups = options.numGroups || 60;
-    const groupSize = options.groupSize || 5;
+  constructor() {
+    this.audioContext = new AudioContext();
 
-    this.recogniser = new JsSpeechRecognizer();
+    this.audioSource = navigator.mediaDevices.getUserMedia({
+      audio: true,
+    })
+      .then((stream) => {
+        return this.audioContext.createMediaStreamSource(stream);
+      })
+      .catch((error) => {
+        console.error(`Could not getUserMedia: ${error}`);
+        throw error;
+      });
 
-    this.recogniser.keywordSpottingMinimumConfidence = minimumConfidence;
-    this.recogniser.keywordSpottingBufferCount = bufferCount;
-    this.recogniser.keywordSpottingMaxVoiceActivityGap = maxVoiceActivityGap;
-    this.recogniser.numGroups = numGroups;
-    this.recogniser.groupSize = groupSize;
+    this.recogniser = new PocketSphinx(this.audioContext, {
+      pocketSphinxUrl: '/js/components/pocketsphinx.js',
+      workerUrl: '/js/components/ps-worker.js',
+      args: [['-kws_threshold', '2']],
+    });
 
+    const dictionary = {
+      'MAKE': ['M EY K'],
+      'A': ['AH'],
+      'NOTE': ['N OW T'],
+    };
+
+    const keywordReady = this.recogniser.addDictionary(dictionary)
+      .then(() => this.recogniser.addKeyword('MAKE A NOTE'));
+
+    this.ready = Promise.all([keywordReady, this.audioSource]);
     Object.seal(this);
   }
 
   startListening() {
-    return new Promise((resolve) => {
-      this.recogniser.closeMic(); // Make sure we don't start another instance
-      this.recogniser.openMic();
-      if (!this.recogniser.isRecording()) {
-        this.recogniser.startKeywordSpottingRecording();
-      }
-
-      resolve();
-    });
+    return this.ready
+      .then(() => {
+        return this.audioSource;
+      })
+      .then((source) => {
+        source.connect(this.recogniser);
+        this.recogniser.connect(this.audioContext.destination);
+        return;
+      });
   }
 
   stopListening() {
-    return new Promise((resolve) => {
-      if (this.recogniser.isRecording()) {
-        this.recogniser.stopRecording();
-      }
-
-      this.recogniser.closeMic();
-
-      resolve();
-    });
-  }
-
-  loadModel(modelData) {
-    if (this.recogniser.isRecording()) {
-      throw new Error(
-        'Load the model data before listening for wakeword');
-    }
-
-    this.recogniser.model = modelData;
+    return this.ready
+      .then(() => {
+        return this.audioSource;
+      })
+      .then((source) => {
+        source.disconnect();
+        this.recogniser.disconnect();
+      });
   }
 
   setOnKeywordSpottedCallback(fn) {
-    this.recogniser.keywordSpottedCallback = fn;
+    this.recogniser.on('keywordspotted', fn);
   }
 }

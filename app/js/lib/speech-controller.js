@@ -9,13 +9,11 @@ import IntentParser from './intent-parser';
 const p = Object.freeze({
   // Properties
   wakewordRecogniser: Symbol('wakewordRecogniser'),
-  wakewordModelUrl: Symbol('wakewordModelUrl'),
   speechRecogniser: Symbol('speechRecogniser'),
   speechSynthesis: Symbol('speechSynthesis'),
   idle: Symbol('idle'),
 
   // Methods
-  initialiseSpeechRecognition: Symbol('initialiseSpeechRecognition'),
   startListeningForWakeword: Symbol('startListeningForWakeword'),
   stopListeningForWakeword: Symbol('stopListeningForWakeword'),
   listenForUtterance: Symbol('listenForUtterance'),
@@ -52,7 +50,6 @@ export default class SpeechController extends EventDispatcher {
     super(EVENT_INTERFACE);
 
     this[p.idle] = true;
-    this[p.wakewordModelUrl] = 'data/wakeword_model.json';
 
     this[p.speechRecogniser] = new SpeechRecogniser();
     this[p.speechSynthesis] = new SpeechSynthesis();
@@ -73,8 +70,7 @@ export default class SpeechController extends EventDispatcher {
   }
 
   start() {
-    return this[p.initialiseSpeechRecognition]()
-      .then(this[p.startListeningForWakeword].bind(this));
+    return this[p.startListeningForWakeword]();
   }
 
   startSpeechRecognition() {
@@ -103,14 +99,6 @@ export default class SpeechController extends EventDispatcher {
    */
   speak(text = '') {
     this[p.speechSynthesis].speak(text);
-  }
-
-  [p.initialiseSpeechRecognition]() {
-    return fetch(this[p.wakewordModelUrl])
-      .then((response) => response.json())
-      .then((model) => {
-        this[p.wakewordRecogniser].loadModel(model);
-      });
   }
 
   [p.startListeningForWakeword]() {
